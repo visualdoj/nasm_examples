@@ -23,4 +23,6 @@ jobs:
         uses: ilammy/setup-nasm@v1
       - name: Print NASM version
         run: nasm -v
+      - uses: actions/setup-python@v5
+      - run: python -m pip install -U pytest
       - run: make test
