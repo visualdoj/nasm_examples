@@ -5,9 +5,15 @@ default : build ;
 .PHONY : default ;
 
 ifeq ($(OS),Windows_NT)
+  UNAME := Windows
   export SRC := win64
 else
-  export SRC := unix64
+  UNAME := $(shell uname)
+  ifeq ($(UNAME),Darwin)
+    export SRC := mac64
+  else
+    export SRC := unix64
+  endif
 endif
 
 export BIN := bin
