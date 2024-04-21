@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  Test examples:
+  Test:
     runs-on: ${{ matrix.host }}
     defaults:
       run:
