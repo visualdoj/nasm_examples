@@ -1,0 +1,26 @@
+name: "Test"
+
+on: 
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  Test examples:
+    runs-on: ${{ matrix.host }}
+    defaults:
+      run:
+        shell: bash
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix: 
+        host: [windows-latest, ubuntu-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup NASM
+        uses: ilammy/setup-nasm@v1
+      - name: Print NASM version
+        run: nasm -v
+      - run: make test
