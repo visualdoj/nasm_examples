@@ -26,3 +26,24 @@ def test_hello():
     assert p.returncode == 0, 'hello.exe should exit successfully'
     assert p.stdout.decode("utf-8").strip() == 'Hello world!'
     assert p.stderr.decode("utf-8") == ''
+
+def test_args():
+    BIN = os.environ['BIN']
+    SRC = os.environ['SRC']
+    EXEEXT = os.environ['EXEEXT']
+    if 'args.asm' not in os.listdir(SRC):
+        return
+
+    args_exe = os.path.join(BIN, 'args' + EXEEXT)
+
+    def run_args(command_line):
+        command_line = ' ' + command_line if command_line else ''
+        p = subprocess.run(f"{args_exe}{command_line}", shell=True, capture_output=True)
+        assert p.returncode == 0
+        assert p.stderr.decode("utf-8") == ''
+        return p.stdout.decode("utf-8").splitlines()
+
+    assert run_args("") == []
+    assert run_args("    ") == []
+    assert run_args("arg1 arg2 arg3") == ['arg1', 'arg2', 'arg3']
+    assert run_args('"arg1 arg2" arg3') == ['arg1 arg2', 'arg3']
