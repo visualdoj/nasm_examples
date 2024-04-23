@@ -5,7 +5,7 @@ global main
 
 section .text
 main:
-    ; envp is in rdi
+    ; envp is in rdx (third argument)
 
     mov rdi, rdx
 
