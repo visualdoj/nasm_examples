@@ -47,3 +47,21 @@ def test_args():
     assert run_args("    ") == []
     assert run_args("arg1 arg2 arg3") == ['arg1', 'arg2', 'arg3']
     assert run_args('"arg1 arg2" arg3') == ['arg1 arg2', 'arg3']
+
+def test_envvars():
+    BIN = os.environ['BIN']
+    SRC = os.environ['SRC']
+    EXEEXT = os.environ['EXEEXT']
+    if 'envvars.asm' not in os.listdir(SRC):
+        return
+
+    envvars_exe = os.path.join(BIN, 'envvars' + EXEEXT)
+
+    def run_prog(env):
+        p = subprocess.run(f"{envvars_exe}", shell=True, capture_output=True, env=env)
+        assert p.returncode == 0
+        assert p.stderr.decode("utf-8") == ''
+        return set(p.stdout.decode("utf-8").splitlines())
+
+    run_prog({})
+    assert {'FOO=BAR'}.issubset(run_prog({'FOO': 'BAR'}))
