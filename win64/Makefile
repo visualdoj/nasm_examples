@@ -10,7 +10,9 @@ $(BIN) :
 build_examples : $(EXAMPLES_EXE)
 	@: # no-op to suppress "make: Nothing to be done ..."
 
-LINK ?= ld
+ifeq ($(LINK),)	 # default linker
+  LINK := ld
+endif
 
 ifeq ($(LINK),ld)  # MinGW linker
   LINKOPTO := -o #
@@ -41,5 +43,4 @@ $(BIN)/%.o : $(SRC)/%.asm $(BIN)
 	$(NASM) -w+error -f win64 $< -o $@
 
 $(BIN)/%.exe : $(BIN)/%.o
-	echo $(PATH)
 	$(LINK) $(LINKOPTS) $(LINKOPTO)$@ $<
