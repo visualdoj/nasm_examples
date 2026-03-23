@@ -45,7 +45,7 @@ main:
 
     add  rsi, 8              ; next argument
     dec  rdi                 ; decrement number of arguments remaining
-    jmpnz .loop
+    jnz .loop
 
 .loop_end:
 
