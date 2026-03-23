@@ -5,11 +5,10 @@ global main
 
 extern ExitProcess
 
-section .code
+section .text
 main:
-  sub rsp, 8+32 ; &bytes, shadow space
-  and rsp, ~0xf ; 16-byte alignment
-
-  mov rcx, 77
-  call ExitProcess
-  hlt
+    sub  rsp, 8+32       ; Alignment + Shadow Space
+ 
+    mov  rcx, 77
+    call ExitProcess
+    hlt

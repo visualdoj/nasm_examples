@@ -19,7 +19,6 @@ endif
 export BIN := bin
 
 NASM ?= nasm
-LD ?= ld
 
 EXAMPLES_ASM := $(wildcard $(SRC)/*.asm)
 EXAMPLES := $(EXAMPLES_ASM:$(SRC)/%.asm=%)

@@ -1,17 +1,45 @@
+-include Makefile.local
+
 export EXEEXT := .exe
 
 EXAMPLES_EXE := $(addprefix $(BIN)/,$(addsuffix .exe,$(EXAMPLES)))
 
-LDFLAGS := C:\Windows\System32\kernel32.dll C:\Windows\System32\user32.dll C:\Windows\System32\msvcrt.dll C:\Windows\System32\shell32.dll
-
 $(BIN) :
 	mkdir $(BIN)
 
-$(BIN)/%.obj : $(SRC)/%.asm $(BIN)
-	$(NASM) -w+error -f win64 $< -o $@
-
-$(BIN)/%.exe : $(BIN)/%.obj
-	$(LD) $(LDFLAGS) -e main --strip-all $< -o $@
-
 build_examples : $(EXAMPLES_EXE)
 	@: # no-op to suppress "make: Nothing to be done ..."
+
+LINK ?= ld
+
+ifeq ($(LINK),ld)  # MinGW linker
+  LINKOPTO := -o #
+  LINKOPTS := -e main --strip-all
+  LINKOPTS += C:\Windows\System32\kernel32.dll
+  LINKOPTS += C:\Windows\System32\user32.dll
+  LINKOPTS += C:\Windows\System32\msvcrt.dll
+  LINKOPTS += C:\Windows\System32\shell32.dll
+endif
+
+ifeq ($(LINK),link.exe)  # MSVC linker
+  export LIB:=$(VSKIT);$(LIB)
+  LINKOPTO := /OUT:
+  LINKOPTS := /ENTRY:main /SUBSYSTEM:console kernel32.lib user32.lib shell32.lib
+endif
+
+ifeq ($(LINK),lld-link.exe)  # LLVM linker
+  LINKOPTO := /out:
+  LIBPATH  := C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22621.0\um\x64
+  LINKOPTS := /entry:main /subsystem:console
+  #LINKOPTS += -w+error -f win64
+  LINKOPTS += "$(LIBPATH)\kernel32.Lib"
+  LINKOPTS += "$(LIBPATH)\user32.Lib"
+  LINKOPTS += "$(LIBPATH)\shell32.Lib"
+endif
+
+$(BIN)/%.o : $(SRC)/%.asm $(BIN)
+	$(NASM) -w+error -f win64 $< -o $@
+
+$(BIN)/%.exe : $(BIN)/%.o
+	echo $(PATH)
+	$(LINK) $(LINKOPTS) $(LINKOPTO)$@ $<

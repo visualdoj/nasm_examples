@@ -6,6 +6,8 @@ def test_exit77():
     SRC = os.environ['SRC']
     EXEEXT = os.environ['EXEEXT']
     if 'exit77.asm' not in os.listdir(SRC):
+        import pytest
+        pytest.skip('Not implemented')
         return
 
     exit77_exe = os.path.join(BIN, 'exit77' + EXEEXT)
@@ -14,11 +16,14 @@ def test_exit77():
     assert p.stdout.decode("utf-8") == ''
     assert p.stderr.decode("utf-8") == ''
 
+
 def test_hello():
     BIN = os.environ['BIN']
     SRC = os.environ['SRC']
     EXEEXT = os.environ['EXEEXT']
     if 'hello.asm' not in os.listdir(SRC):
+        import pytest
+        pytest.skip('Not implemented')
         return
 
     hello_exe = os.path.join(BIN, 'hello' + EXEEXT)
@@ -27,11 +32,14 @@ def test_hello():
     assert p.stdout.decode("utf-8").strip() == 'Hello world!'
     assert p.stderr.decode("utf-8") == ''
 
+
 def test_args():
     BIN = os.environ['BIN']
     SRC = os.environ['SRC']
     EXEEXT = os.environ['EXEEXT']
     if 'args.asm' not in os.listdir(SRC):
+        import pytest
+        pytest.skip('Not implemented')
         return
 
     args_exe = os.path.join(BIN, 'args' + EXEEXT)
@@ -41,18 +49,28 @@ def test_args():
         p = subprocess.run(f"{args_exe}{command_line}", shell=True, capture_output=True)
         assert p.returncode == 0
         assert p.stderr.decode("utf-8") == ''
+        s = p.stdout
+        print()
+        print()
+        print()
+        for c in s:
+            print(c)
         return p.stdout.decode("utf-8").splitlines()
 
     assert run_args("") == []
     assert run_args("    ") == []
     assert run_args("arg1 arg2 arg3") == ['arg1', 'arg2', 'arg3']
     assert run_args('"arg1 arg2" arg3') == ['arg1 arg2', 'arg3']
+    assert run_args('你好') == ['你好']
+
 
 def test_envvars():
     BIN = os.environ['BIN']
     SRC = os.environ['SRC']
     EXEEXT = os.environ['EXEEXT']
     if 'envvars.asm' not in os.listdir(SRC):
+        import pytest
+        pytest.skip('Not implemented')
         return
 
     envvars_exe = os.path.join(BIN, 'envvars' + EXEEXT)
