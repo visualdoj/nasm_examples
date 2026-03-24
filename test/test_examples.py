@@ -105,3 +105,24 @@ def test_count():
     assert run_count(1) == ['1']
     assert run_count(5) == ['1', '2', '3', '4', '5']
     assert run_count(15) == [str(i) for i in range(1, 16)]
+
+
+def test_colors():
+    BIN = os.environ['BIN']
+    SRC = os.environ['SRC']
+    EXEEXT = os.environ['EXEEXT']
+    if 'colors.asm' not in os.listdir(SRC):
+        import pytest
+        pytest.skip('Not implemented')
+        return
+
+    colors_exe = os.path.join(BIN, 'colors' + EXEEXT)
+    p = subprocess.run(colors_exe, shell=True, capture_output=True)
+    assert p.returncode == 0, 'colors should exit successfully'
+    assert p.stderr.decode("utf-8") == ''
+
+    ESC = "\x1b"
+    lines = p.stdout.decode("utf-8").splitlines()
+    assert len(lines) == 2, 'colors should output exactly 2 lines'
+    assert lines[0] == f"{ESC}[97mWhite {ESC}[91mRed {ESC}[92mGreen {ESC}[93mYellow {ESC}[94mBlue {ESC}[95mMagenta {ESC}[96mCyan {ESC}[0m"
+    assert lines[1] == f"{ESC}[37mWhite {ESC}[31mRed {ESC}[32mGreen {ESC}[33mYellow {ESC}[34mBlue {ESC}[35mMagenta {ESC}[36mCyan {ESC}[0m"

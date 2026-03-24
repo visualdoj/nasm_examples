@@ -38,12 +38,52 @@
     pop  rax
 %endmacro
 
+%macro push_all_registers_and_mov_al 1
+    mov  [rsp-8], rax
+    mov  al, %1
+    sub  rsp, 8
+    push rcx
+    push rdx
+    push rbx
+    push rsi
+    push rdi
+    push r8
+    push r9
+    push r10
+    push r11
+    push r12
+    push r13
+    push r14
+    push r15
+    push rbp
+    mov  rbp, rsp
+%endmacro
+
+%macro push_all_registers_and_mov_rax 1
+    mov  [rsp-8], rax
+    mov  rax, %1
+    sub  rsp, 8
+    push rcx
+    push rdx
+    push rbx
+    push rsi
+    push rdi
+    push r8
+    push r9
+    push r10
+    push r11
+    push r12
+    push r13
+    push r14
+    push r15
+    push rbp
+    mov  rbp, rsp
+%endmacro
+
 
 
 %macro macro_print_char 1
-    push_all_registers
-
-    mov  al, %1
+    push_all_registers_and_mov_al %1
 
     ; Local variables + Parameters + Shadow Space
     sub  rsp, 1+16+32
@@ -92,9 +132,8 @@
 
 
 %macro macro_print_u64 1
-    push_all_registers
+    push_all_registers_and_mov_rax %1
 
-    mov  rax, %1
     mov  r11, 10
     xor  r8,  r8
 
