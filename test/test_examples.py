@@ -107,6 +107,31 @@ def test_count():
     assert run_count(15) == [str(i) for i in range(1, 16)]
 
 
+def test_upper():
+    BIN = os.environ['BIN']
+    SRC = os.environ['SRC']
+    EXEEXT = os.environ['EXEEXT']
+    if 'upper.asm' not in os.listdir(SRC):
+        import pytest
+        pytest.skip('Not implemented')
+        return
+
+    upper_exe = os.path.join(BIN, 'upper' + EXEEXT)
+
+    def run_upper(input_text):
+        p = subprocess.run(upper_exe, shell=True, capture_output=True, input=input_text.encode("utf-8"))
+        assert p.returncode == 0
+        assert p.stderr.decode("utf-8") == ''
+        return p.stdout.decode("utf-8")
+
+    assert run_upper("hello") == "HELLO"
+    assert run_upper("Hello World") == "HELLO WORLD"
+    assert run_upper("ALREADY UPPER") == "ALREADY UPPER"
+    assert run_upper("123 abc!") == "123 ABC!"
+    assert run_upper("") == ""
+    assert run_upper("line1\nline2\n") == "LINE1\nLINE2\n"
+
+
 def test_colors():
     BIN = os.environ['BIN']
     SRC = os.environ['SRC']
