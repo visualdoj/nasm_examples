@@ -19,11 +19,11 @@ main:
     call GetStdHandle
  
     ; rax = WriteFile(rax, &MSG, MSG_LEN, &bytes, NULL)
-    mov  rcx, rax            ; argument 1: file handle returned from GetStdHandle
-    lea  rdx, [MSG]          ; argument 2: string
-    mov  r8, MSG_LEN         ; argument 3: string length
-    lea  r9, DWORD [rsp+32]  ; argument 4: &bytes
-    mov  QWORD [rsp], 0      ; argument 5: lpOverlapped
+    mov  rcx, rax           ; argument 1: file handle returned from GetStdHandle
+    lea  rdx, [MSG]         ; argument 2: string
+    mov  r8,  MSG_LEN       ; argument 3: string length
+    lea  r9,  [rsp+40]      ; argument 4: &bytes
+    mov  QWORD [rsp+32], 0  ; argument 5: lpOverlapped
     call WriteFile
  
     ; ExitProcess(0)

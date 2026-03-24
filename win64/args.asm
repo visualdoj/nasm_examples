@@ -141,6 +141,7 @@ emit_unicode_char:
     jmp emit_char
 
 .check_two_bytes:
+    push 0  ; alignment for subsequent calls
     mov r12, rcx
     cmp rcx, 0x07FF
     jg  .check_three_bytes
@@ -152,6 +153,7 @@ emit_unicode_char:
     mov rcx, r12
     and rcx, 0x3F
     or  rcx, 0x80
+    pop rax
     jmp emit_char
 
 .check_three_bytes:
@@ -171,6 +173,7 @@ emit_unicode_char:
     mov rcx, r12
     and rcx, 0x3F
     or  rcx, 0x80
+    pop rax
     jmp emit_char
 
 .four_bytes:
@@ -193,4 +196,5 @@ emit_unicode_char:
     mov rcx, r12
     and rcx, 0x3F
     or  rcx, 0x80
+    pop rax
     jmp emit_char
