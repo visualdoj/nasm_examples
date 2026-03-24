@@ -81,5 +81,27 @@ def test_envvars():
         assert p.stderr.decode("utf-8") == ''
         return set(p.stdout.decode("utf-8").splitlines())
 
-    run_prog({})
+    run_prog(None)
     assert {'FOO=BAR'}.issubset(run_prog({'FOO': 'BAR'}))
+
+
+def test_count():
+    BIN = os.environ['BIN']
+    SRC = os.environ['SRC']
+    EXEEXT = os.environ['EXEEXT']
+    if 'count.asm' not in os.listdir(SRC):
+        import pytest
+        pytest.skip('Not implemented')
+        return
+
+    count_exe = os.path.join(BIN, 'count' + EXEEXT)
+
+    def run_count(n):
+        p = subprocess.run(f"{count_exe} {n}", shell=True, capture_output=True)
+        assert p.returncode == 0
+        assert p.stderr.decode("utf-8") == ''
+        return p.stdout.decode("utf-8").splitlines()
+
+    assert run_count(1) == ['1']
+    assert run_count(5) == ['1', '2', '3', '4', '5']
+    assert run_count(15) == [str(i) for i in range(1, 16)]
