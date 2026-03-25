@@ -20,8 +20,8 @@ nwritten resb 4
 
 section .text
 main:
-    ; Alignment + 5th arg + Shadow Space
-    sub  rsp, 8+8+32
+    ; Alignment + Local variables + 5th arg + Shadow Space
+    sub  rsp, 0+0+8+32
 
     ; stdin = GetStdHandle(STD_INPUT_HANDLE)
     mov  rcx, STD_INPUT_HANDLE
