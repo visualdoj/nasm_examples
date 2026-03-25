@@ -62,6 +62,24 @@ CI runs the full matrix (Windows, Ubuntu, macOS) on every push and pull request 
 3. Add a test function in `test/test_examples.py` that checks the program's exit code and output.
 4. Keep the source minimal and self-explanatory — the goal is readability, not production robustness.
 
+## Assembly style guide
+
+- **Indent instructions with 4 spaces.**
+
+- **Pad the mnemonic to 4 characters** by adding trailing spaces before the operands, so all operands start in the same column regardless of mnemonic length:
+  ```
+  jb   .label       ; 2-char mnemonic + 3 spaces
+  mov  rax, 1       ; 3-char mnemonic + 2 spaces
+  call foo          ; 4-char mnemonic + 1 space
+  ```
+
+- **Align the second operand** when the first operand is a register: add trailing spaces after the comma to compensate for registers shorter than 3 characters, so the second operand always starts at the same column as it would for a 3-character register:
+  ```
+  mov  rcx, foo     ; 3-char register — 1 space after comma
+  mov  r8,  foo     ; 2-char register — 2 spaces after comma
+  mov  cl,  foo     ; 2-char register — 2 spaces after comma
+  ```
+
 ## Conventions
 
 - Each `.asm` file should be self-contained and demonstrate one concept.

@@ -28,10 +28,10 @@ envW resb 8
 section .text
 main:
     ; Alignment + Local variables (char, lpNumberOfBytesWritten) + Arguments (bytes) + Shadow Space
-    sub rsp, 0+8+0+32
+    sub  rsp, 0+8+0+32
    
     ; stdout = GetStdHandle(STD_OUTPUT_HANDLE)
-    mov rcx, STD_OUTPUT_HANDLE      ; argument 1: nStdHandle, enum of a standard device
+    mov  rcx, STD_OUTPUT_HANDLE     ; argument 1: nStdHandle, enum of a standard device
     call GetStdHandle
     mov QWORD [stdout], rax
    
@@ -50,10 +50,10 @@ main:
 
   .next_character:
 
-    cmp  cx, 0xD800
+    cmp  cx,  0xD800
     jl   .decoded
 
-    cmp  cx, 0xDBFF
+    cmp  cx,  0xDBFF
     jg   .decoded
 
     ; surrogate
@@ -73,9 +73,9 @@ main:
     jne  .next_character
 
   .end_env:
-    mov  cx, 13
+    mov  cx,  13
     call emit_char
-    mov  cx, 10
+    mov  cx,  10
     call emit_char
 
     add  rbx, 2
@@ -111,7 +111,7 @@ emit_char:
     call WriteFile
 
     ; Restore stack
-    add rsp, 0+16+8+32
+    add  rsp, 0+16+8+32
 
     ret
 
@@ -120,30 +120,30 @@ emit_char:
 emit_unicode_char:
 ; Emits unicode character ECX to stdout as UTF-8 character.
 
-    cmp rcx, 0x007F
-    jg  .check_two_bytes
+    cmp  rcx,  0x007F
+    jg   .check_two_bytes
 
-    jmp emit_char
+    jmp  emit_char
 
 .check_two_bytes:
     push 0  ; alignment for subsequent calls
-    mov r12, rcx
-    cmp rcx, 0x07FF
-    jg  .check_three_bytes
+    mov  r12, rcx
+    cmp  rcx, 0x07FF
+    jg   .check_three_bytes
 
     shr  rcx, 6
     or   rcx, 0xC0
     call emit_char
 
-    mov rcx, r12
-    and rcx, 0x3F
-    or  rcx, 0x80
+    mov  rcx, r12
+    and  rcx, 0x3F
+    or   rcx, 0x80
     pop  rax
-    jmp emit_char
+    jmp  emit_char
 
 .check_three_bytes:
-    cmp rcx, 0xFFFF
-    jg  .four_bytes
+    cmp  rcx, 0xFFFF
+    jg   .four_bytes
 
     shr  rcx, 12
     or   rcx, 0xE0
@@ -155,11 +155,11 @@ emit_unicode_char:
     or   rcx, 0x80
     call emit_char
 
-    mov rcx, r12
-    and rcx, 0x3F
-    or  rcx, 0x80
-    pop rax
-    jmp emit_char
+    mov  rcx, r12
+    and  rcx, 0x3F
+    or   rcx, 0x80
+    pop  rax
+    jmp  emit_char
 
 .four_bytes:
     shr  rcx, 18
@@ -178,8 +178,8 @@ emit_unicode_char:
     or   rcx, 0x80
     call emit_char
 
-    mov rcx, r12
-    and rcx, 0x3F
-    or  rcx, 0x80
-    pop rax
-    jmp emit_char
+    mov  rcx, r12
+    and  rcx, 0x3F
+    or   rcx, 0x80
+    pop  rax
+    jmp  emit_char
