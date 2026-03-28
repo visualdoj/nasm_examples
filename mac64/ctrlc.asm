@@ -25,7 +25,7 @@ _main:
     syscall
 
     ; __sigwait(&block_set, &sig) — wait for a blocked signal
-    mov  rax, 0x020001A4       ; syscall: __sigwait (420)
+    mov  rax, 0x020001AD       ; syscall: sigwait (429)
     lea  rdi, [block_set]
     lea  rsi, [rsp]            ; &sig (receives signal number)
     syscall
