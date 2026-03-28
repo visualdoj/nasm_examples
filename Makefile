@@ -28,4 +28,4 @@ include $(SRC)/Makefile
 build : build_examples ;
 
 test : build_examples
-	python -m pytest test
+	python -m pytest test -v

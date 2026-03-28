@@ -1,5 +1,6 @@
 import os
 import subprocess
+from datetime import datetime, timezone
 
 def test_exit77():
     BIN = os.environ['BIN']
@@ -179,3 +180,28 @@ def test_colors():
     assert len(lines) == 2, 'colors should output exactly 2 lines'
     assert lines[0] == f"{ESC}[97mWhite {ESC}[91mRed {ESC}[92mGreen {ESC}[93mYellow {ESC}[94mBlue {ESC}[95mMagenta {ESC}[96mCyan {ESC}[0m"
     assert lines[1] == f"{ESC}[37mWhite {ESC}[31mRed {ESC}[32mGreen {ESC}[33mYellow {ESC}[34mBlue {ESC}[35mMagenta {ESC}[36mCyan {ESC}[0m"
+
+
+def test_clock():
+    BIN = os.environ['BIN']
+    SRC = os.environ['SRC']
+    EXEEXT = os.environ['EXEEXT']
+    if 'clock.asm' not in os.listdir(SRC):
+        import pytest
+        pytest.skip('Not implemented')
+        return
+
+    clock_exe = os.path.join(BIN, 'clock' + EXEEXT)
+
+    before = datetime.now(timezone.utc).replace(microsecond=0)
+    p = subprocess.run(clock_exe, shell=True, capture_output=True)
+    after = datetime.now(timezone.utc).replace(microsecond=0)
+
+    assert p.returncode == 0, 'clock should exit successfully'
+    assert p.stderr.decode("utf-8") == ''
+
+    output = p.stdout.decode("utf-8").strip()
+    result = datetime.strptime(output, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+
+    assert before <= result <= after, \
+        f"clock output {output} not between {before.isoformat()} and {after.isoformat()}"
