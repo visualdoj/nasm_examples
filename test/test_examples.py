@@ -3,6 +3,7 @@ import shutil
 import signal
 import subprocess
 import sys
+import tempfile
 import time
 from datetime import datetime, timezone
 
@@ -247,6 +248,114 @@ def test_sleep_1():
     assert p.stdout.decode("utf-8") == ''
     assert p.stderr.decode("utf-8") == ''
     assert 0.9 <= elapsed <= 3.0, f"sleep 1 took {elapsed:.2f}s, expected ~1s"
+
+
+def test_hexdump():
+    BIN = os.environ['BIN']
+    SRC = os.environ['SRC']
+    EXEEXT = os.environ['EXEEXT']
+    if 'hexdump.asm' not in os.listdir(SRC):
+        import pytest
+        pytest.skip('Not implemented')
+        return
+
+    hexdump_exe = os.path.join(BIN, 'hexdump' + EXEEXT)
+
+    def run_hexdump(data):
+        f = tempfile.NamedTemporaryFile(delete=False, suffix='.dat')
+        try:
+            f.write(data)
+            f.close()
+            p = subprocess.run(f"{hexdump_exe} {f.name}", shell=True,
+                               capture_output=True)
+            assert p.returncode == 0
+            assert p.stderr.decode("utf-8") == ''
+            return p.stdout.decode("utf-8").splitlines()
+        finally:
+            os.unlink(f.name)
+
+    # Empty file
+    lines = run_hexdump(b"")
+    assert lines == ["00000000"]
+
+    # Exactly 16 bytes
+    lines = run_hexdump(b"0123456789abcdef")
+    assert len(lines) == 2
+    assert lines[0].startswith("00000000  30 31 32 33 34 35 36 37")
+    assert "38 39 61 62 63 64 65 66" in lines[0]
+    assert "|0123456789abcdef|" in lines[0]
+    assert lines[1] == "00000010"
+
+    # 17 bytes (wraps to second line)
+    lines = run_hexdump(b"0123456789abcdefX")
+    assert len(lines) == 3
+    assert lines[1].startswith("00000010  58")
+    assert "|X|" in lines[1]
+    assert lines[2] == "00000011"
+
+    # Non-printable bytes (all < 0x20 → shown as dots)
+    lines = run_hexdump(bytes(range(16)))
+    assert lines[0].startswith("00000000  00 01 02 03 04 05 06 07")
+    assert "08 09 0a 0b 0c 0d 0e 0f" in lines[0]
+    assert "|................|" in lines[0]
+    assert lines[1] == "00000010"
+
+    # Partial line (5 bytes) — padding in hex area
+    lines = run_hexdump(b"Hello")
+    assert len(lines) == 2
+    assert lines[0].startswith("00000000  48 65 6c 6c 6f")
+    assert "|Hello|" in lines[0]
+    assert lines[1] == "00000005"
+
+
+def test_clear():
+    BIN = os.environ['BIN']
+    SRC = os.environ['SRC']
+    EXEEXT = os.environ['EXEEXT']
+    if 'clear.asm' not in os.listdir(SRC):
+        import pytest
+        pytest.skip('Not implemented')
+        return
+
+    clear_exe = os.path.join(BIN, 'clear' + EXEEXT)
+    p = subprocess.run(clear_exe, shell=True, capture_output=True)
+    assert p.returncode == 0, 'clear should exit successfully'
+    assert p.stderr.decode("utf-8") == ''
+
+    ESC = "\x1b"
+    output = p.stdout.decode("utf-8")
+    assert f"{ESC}[H" in output, "should contain cursor-home sequence"
+    assert f"{ESC}[2J" in output, "should contain erase-screen sequence"
+    assert f"{ESC}[3J" in output, "should contain erase-scrollback sequence"
+
+
+def test_sqrt():
+    BIN = os.environ['BIN']
+    SRC = os.environ['SRC']
+    EXEEXT = os.environ['EXEEXT']
+    if 'sqrt.asm' not in os.listdir(SRC):
+        import pytest
+        pytest.skip('Not implemented')
+        return
+
+    sqrt_exe = os.path.join(BIN, 'sqrt' + EXEEXT)
+
+    def run_sqrt(arg):
+        p = subprocess.run(f"{sqrt_exe} {arg}", shell=True, capture_output=True)
+        assert p.returncode == 0
+        assert p.stderr.decode("utf-8") == ''
+        return p.stdout.decode("utf-8").strip()
+
+    assert run_sqrt("0") == "0"
+    assert run_sqrt("1") == "1"
+    assert run_sqrt("4") == "2"
+    assert run_sqrt("100") == "10"
+    assert run_sqrt("1000000") == "1000"
+    assert run_sqrt("0.25") == "0.5"
+    assert run_sqrt("2") == "1.414214"
+    assert run_sqrt("-1") == "1i"
+    assert run_sqrt("-4") == "2i"
+    assert run_sqrt("-2") == "1.414214i"
 
 
 def _ctrlc_start():
