@@ -14,6 +14,8 @@ bin/        Build output (generated)
 Makefile    Top-level build, auto-detects platform
 ```
 
+All `Makefile.local` configure building on local machine, it is not part of the repository.
+
 ## Examples
 
 | Program  | Description                                                    |
