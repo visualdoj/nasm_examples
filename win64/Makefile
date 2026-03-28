@@ -24,6 +24,8 @@ else
 endif
 unexport LINK
 
+LINKER_CMD := $(LINKER)
+
 ifeq ($(LINKER),ld)  # MinGW linker
   LINKOPTO := -o #
   LINKOPTS := -e main --strip-all
@@ -35,6 +37,7 @@ endif
 
 ifeq ($(LINKER),link.exe)  # MSVC linker
   export LIB:=$(VSKIT);$(LIB)
+  LINKER_CMD := $(if $(VSLINK),$(VSLINK),$(LINKER))
   LINKOPTO := /OUT:
   LINKOPTS := /ENTRY:main /SUBSYSTEM:console kernel32.lib user32.lib shell32.lib
 endif
@@ -49,4 +52,4 @@ $(BIN)/%.o : $(SRC)/%.asm $(BIN)
 	$(NASM) -w+error -f win64 $< -o $@
 
 $(BIN)/%.exe : $(BIN)/%.o
-	$(LINKER) $(LINKOPTS) $(LINKOPTO)$@ $<
+	$(LINKER_CMD) $(LINKOPTS) $(LINKOPTO)$@ $<
