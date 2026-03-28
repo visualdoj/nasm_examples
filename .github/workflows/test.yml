@@ -35,7 +35,7 @@ jobs:
       - name: Setup NASM
         uses: ilammy/setup-nasm@v1
       - name: Setup MSVC
-        if: matrix.linker == 'link.exe'
+        if: matrix.linker == 'link.exe' || matrix.linker == 'lld-link.exe'
         uses: ilammy/msvc-dev-cmd@v1
       - name: Print NASM version
         run: nasm -v

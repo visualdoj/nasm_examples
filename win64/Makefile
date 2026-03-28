@@ -28,23 +28,26 @@ ifeq ($(LINK),ld)  # MinGW linker
 endif
 
 ifeq ($(LINK),link.exe)  # MSVC linker
+  # Auto-detect MSVC link.exe via vswhere so we don't rely on PATH order
+  # (GitHub runners have /usr/bin/link.exe which is the POSIX link command).
+  VSWHERE := C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe
+  _MSVC_LINK := $(shell "$(VSWHERE)" -latest -products "*" -find VC\\Tools\\MSVC\\*\\bin\\Hostx64\\x64\\link.exe 2>/dev/null)
+  ifneq ($(_MSVC_LINK),)
+    override LINK := $(_MSVC_LINK)
+  endif
   export LIB:=$(VSKIT);$(LIB)
   LINKOPTO := /OUT:
   LINKOPTS := /ENTRY:main /SUBSYSTEM:console kernel32.lib user32.lib shell32.lib
 endif
 
 ifeq ($(LINK),lld-link.exe)  # LLVM linker
+  export LIB:=$(VSKIT);$(LIB)
   LINKOPTO := /out:
-  LIBPATH  := C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22621.0\um\x64
-  LINKOPTS := /entry:main /subsystem:console
-  #LINKOPTS += -w+error -f win64
-  LINKOPTS += "$(LIBPATH)\kernel32.Lib"
-  LINKOPTS += "$(LIBPATH)\user32.Lib"
-  LINKOPTS += "$(LIBPATH)\shell32.Lib"
+  LINKOPTS := /entry:main /subsystem:console kernel32.lib user32.lib shell32.lib
 endif
 
 $(BIN)/%.o : $(SRC)/%.asm $(BIN)
 	$(NASM) -w+error -f win64 $< -o $@
 
 $(BIN)/%.exe : $(BIN)/%.o
-	$(LINK) $(LINKOPTS) $(LINKOPTO)$@ $<
+	"$(LINK)" $(LINKOPTS) $(LINKOPTO)$@ $<
