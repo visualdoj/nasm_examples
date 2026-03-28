@@ -211,6 +211,44 @@ def test_clock():
         f"clock output {output} not between {before.isoformat()} and {after.isoformat()}"
 
 
+def test_sleep_0():
+    BIN = os.environ['BIN']
+    SRC = os.environ['SRC']
+    EXEEXT = os.environ['EXEEXT']
+    if 'sleep.asm' not in os.listdir(SRC):
+        import pytest
+        pytest.skip('Not implemented')
+        return
+
+    sleep_exe = os.path.join(BIN, 'sleep' + EXEEXT)
+    before = time.monotonic()
+    p = subprocess.run(f"{sleep_exe} 0", shell=True, capture_output=True)
+    elapsed = time.monotonic() - before
+    assert p.returncode == 0
+    assert p.stdout.decode("utf-8") == ''
+    assert p.stderr.decode("utf-8") == ''
+    assert elapsed < 2.0, f"sleep 0 took {elapsed:.2f}s, expected < 2s"
+
+
+def test_sleep_1():
+    BIN = os.environ['BIN']
+    SRC = os.environ['SRC']
+    EXEEXT = os.environ['EXEEXT']
+    if 'sleep.asm' not in os.listdir(SRC):
+        import pytest
+        pytest.skip('Not implemented')
+        return
+
+    sleep_exe = os.path.join(BIN, 'sleep' + EXEEXT)
+    before = time.monotonic()
+    p = subprocess.run(f"{sleep_exe} 1", shell=True, capture_output=True)
+    elapsed = time.monotonic() - before
+    assert p.returncode == 0
+    assert p.stdout.decode("utf-8") == ''
+    assert p.stderr.decode("utf-8") == ''
+    assert 0.9 <= elapsed <= 3.0, f"sleep 1 took {elapsed:.2f}s, expected ~1s"
+
+
 def _ctrlc_start():
     """Build ctrlc and return a running Popen handle."""
     BIN = os.environ['BIN']

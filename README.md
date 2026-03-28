@@ -1,6 +1,6 @@
 # NASM examples
 
-|Program  |Description                                                         |Files                                                                             |
+|Program  |Description                                                         |Sources                                                                           |
 |---------|--------------------------------------------------------------------|----------------------------------------------------------------------------------|
 |exit77   |Returns exit code 77, kind of minimal application                   |[unix64](unix64/exit77.asm)  [win64](win64/exit77.asm)  [mac64](mac64/exit77.asm) |
 |hello    |Prints "Hello world!", basics of printing to stdout                 |[unix64](unix64/hello.asm)   [win64](win64/hello.asm)   [mac64](mac64/hello.asm)  |
@@ -11,4 +11,5 @@
 |upper    |Converts all lowercase letters in stdin to uppercase                |[unix64](unix64/upper.asm)   [win64](win64/upper.asm)   [mac64](mac64/upper.asm)  |
 |reverse  |Reads all of stdin and prints it in reverse                         |[unix64](unix64/reverse.asm) [win64](win64/reverse.asm) [mac64](mac64/reverse.asm)|
 |clock    |Prints current UTC date and time in ISO 8601 format                 |[unix64](unix64/clock.asm)   [win64](win64/clock.asm)   [mac64](mac64/clock.asm)  |
+|sleep    |Sleeps for the specified number of seconds                          |[unix64](unix64/sleep.asm)   [win64](win64/sleep.asm)   [mac64](mac64/sleep.asm)  |
 |ctrlc    |Waits for Ctrl+C, acknowledges it, and exits via standard signal    |[unix64](unix64/ctrlc.asm)   [win64](win64/ctrlc.asm)   [mac64](mac64/ctrlc.asm)  |
