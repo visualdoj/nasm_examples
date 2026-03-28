@@ -9,3 +9,4 @@
 |envvars  |Prints environment variables, one per line, in UTF-8 encoding       |[unix64](unix64/envvars.asm) [win64](win64/envvars.asm) [mac64](mac64/envvars.asm)|
 |colors   |Prints colorful output (if supported by TTY)                        |[unix64](unix64/colors.asm)  [win64](win64/colors.asm)  [mac64](mac64/colors.asm)|
 |upper    |Converts all lowercase letters in stdin to uppercase                |[unix64](unix64/upper.asm)   [win64](win64/upper.asm)   [mac64](mac64/upper.asm)|
+|reverse  |Reads all of stdin and prints it in reverse                         |[unix64](unix64/reverse.asm) [win64](win64/reverse.asm) [mac64](mac64/reverse.asm)|

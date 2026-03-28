@@ -1,4 +1,4 @@
--include Makefile.local
+-include $(SRC)/Makefile.local
 
 export EXEEXT := .exe
 
@@ -9,6 +9,10 @@ $(BIN) :
 
 build_examples : $(EXAMPLES_EXE)
 	@: # no-op to suppress "make: Nothing to be done ..."
+
+# MSVC's link.exe and lld-link.exe read the LINK env var as extra command-line
+# arguments, so we must not export it to child processes.
+unexport LINK
 
 ifeq ($(LINK),)	 # default linker
   LINK := ld

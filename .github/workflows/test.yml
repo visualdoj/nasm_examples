@@ -1,6 +1,6 @@
 name: "Test"
 
-on: 
+on:
   push:
   pull_request:
   workflow_dispatch:
@@ -8,20 +8,37 @@ on:
 jobs:
   Test:
     runs-on: ${{ matrix.host }}
+    name: ${{ matrix.name }}
     defaults:
       run:
         shell: bash
     strategy:
       fail-fast: false
-      matrix: 
-        host: [windows-latest, ubuntu-latest, macos-26-intel]
+      matrix:
+        include:
+          - host: ubuntu-latest
+            name: Linux
+          - host: macos-26-intel
+            name: macOS
+          - host: windows-latest
+            name: Windows (ld)
+            linker: ld
+          - host: windows-latest
+            name: Windows (link.exe)
+            linker: link.exe
+          - host: windows-latest
+            name: Windows (lld-link.exe)
+            linker: lld-link.exe
 
     steps:
       - uses: actions/checkout@v6
       - name: Setup NASM
         uses: ilammy/setup-nasm@v1
+      - name: Setup MSVC
+        if: matrix.linker == 'link.exe'
+        uses: ilammy/msvc-dev-cmd@v1
       - name: Print NASM version
         run: nasm -v
       - uses: actions/setup-python@v6
       - run: python -m pip install -U pytest
-      - run: make test
+      - run: make test LINK=${{ matrix.linker }}

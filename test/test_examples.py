@@ -132,6 +132,34 @@ def test_upper():
     assert run_upper("line1\nline2\n") == "LINE1\nLINE2\n"
 
 
+def test_reverse():
+    BIN = os.environ['BIN']
+    SRC = os.environ['SRC']
+    EXEEXT = os.environ['EXEEXT']
+    if 'reverse.asm' not in os.listdir(SRC):
+        import pytest
+        pytest.skip('Not implemented')
+        return
+
+    reverse_exe = os.path.join(BIN, 'reverse' + EXEEXT)
+
+    def run_reverse(input_bytes):
+        p = subprocess.run(reverse_exe, shell=True, capture_output=True, input=input_bytes)
+        assert p.returncode == 0
+        assert p.stderr.decode("utf-8") == ''
+        return p.stdout
+
+    assert run_reverse(b"") == b""
+    assert run_reverse(b"a") == b"a"
+    assert run_reverse(b"hello") == b"olleh"
+    assert run_reverse(b"Hello World!") == b"!dlroW olleH"
+    assert run_reverse(b"racecar") == b"racecar"
+    assert run_reverse(b"ab\ncd\n") == b"\ndc\nba"
+    # exercise the grow path (exceeds initial 4096-byte buffer)
+    large = b"abcdefghij" * 500
+    assert run_reverse(large) == large[::-1]
+
+
 def test_colors():
     BIN = os.environ['BIN']
     SRC = os.environ['SRC']
