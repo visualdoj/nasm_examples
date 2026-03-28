@@ -11,3 +11,4 @@
 |upper    |Converts all lowercase letters in stdin to uppercase                |[unix64](unix64/upper.asm)   [win64](win64/upper.asm)   [mac64](mac64/upper.asm)  |
 |reverse  |Reads all of stdin and prints it in reverse                         |[unix64](unix64/reverse.asm) [win64](win64/reverse.asm) [mac64](mac64/reverse.asm)|
 |clock    |Prints current UTC date and time in ISO 8601 format                 |[unix64](unix64/clock.asm)   [win64](win64/clock.asm)   [mac64](mac64/clock.asm)  |
+|ctrlc    |Waits for Ctrl+C, acknowledges it, and exits via standard signal    |[unix64](unix64/ctrlc.asm)   [win64](win64/ctrlc.asm)   [mac64](mac64/ctrlc.asm)  |

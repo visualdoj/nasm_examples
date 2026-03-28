@@ -1,5 +1,9 @@
 import os
+import shutil
+import signal
 import subprocess
+import sys
+import time
 from datetime import datetime, timezone
 
 def test_exit77():
@@ -205,3 +209,76 @@ def test_clock():
 
     assert before <= result <= after, \
         f"clock output {output} not between {before.isoformat()} and {after.isoformat()}"
+
+
+def _ctrlc_start():
+    """Build ctrlc and return a running Popen handle."""
+    BIN = os.environ['BIN']
+    SRC = os.environ['SRC']
+    EXEEXT = os.environ['EXEEXT']
+    if 'ctrlc.asm' not in os.listdir(SRC):
+        import pytest
+        pytest.skip('Not implemented')
+
+    ctrlc_exe = os.path.join(BIN, 'ctrlc' + EXEEXT)
+
+    kwargs = {}
+    if sys.platform == 'win32':
+        kwargs['creationflags'] = subprocess.CREATE_NEW_PROCESS_GROUP
+
+    return subprocess.Popen(
+        ctrlc_exe,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        **kwargs,
+    )
+
+
+def _ctrlc_signal(proc):
+    """Send the platform-appropriate Ctrl+C equivalent."""
+    if sys.platform == 'win32':
+        proc.send_signal(signal.CTRL_BREAK_EVENT)
+    else:
+        proc.send_signal(signal.SIGINT)
+
+
+def test_ctrlc_prompt():
+    """The program must print its prompt and acknowledge the signal."""
+    proc = _ctrlc_start()
+    try:
+        time.sleep(0.5)
+        _ctrlc_signal(proc)
+        stdout, stderr = proc.communicate(timeout=5)
+        assert b"Press Ctrl+C to exit..." in stdout
+        assert b"Received " in stdout  # "Received Ctrl+C" or "Received kill signal"
+        assert stderr == b""
+    finally:
+        if proc.poll() is None:
+            proc.kill()
+            proc.wait(timeout=5)
+
+
+def test_ctrlc_exit_code():
+    """Signal must terminate the process with a non-zero exit code."""
+    proc = _ctrlc_start()
+    try:
+        time.sleep(0.5)
+        _ctrlc_signal(proc)
+        proc.wait(timeout=5)
+        assert proc.returncode != 0, \
+            f"expected non-zero exit code, got {proc.returncode}"
+    finally:
+        if proc.poll() is None:
+            proc.kill()
+            proc.wait(timeout=5)
+
+
+def test_ctrlc_stays_alive():
+    """The program must keep running until it receives a signal."""
+    proc = _ctrlc_start()
+    try:
+        time.sleep(1)
+        assert proc.poll() is None, "process exited before Ctrl+C was sent"
+    finally:
+        _ctrlc_signal(proc)
+        proc.wait(timeout=5)
