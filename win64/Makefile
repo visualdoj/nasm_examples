@@ -11,14 +11,20 @@ build_examples : $(EXAMPLES_EXE)
 	@: # no-op to suppress "make: Nothing to be done ..."
 
 # MSVC's link.exe and lld-link.exe read the LINK env var as extra command-line
-# arguments, so we must not export it to child processes.
+# arguments, so callers should use NASM_LINKER instead of LINK whenever possible.
+# Keep LINK as a backward-compatible fallback for local usage.
+ifeq ($(NASM_LINKER),)
+  ifeq ($(LINK),)  # default linker
+    LINKER := ld
+  else
+    LINKER := $(LINK)
+  endif
+else
+  LINKER := $(NASM_LINKER)
+endif
 unexport LINK
 
-ifeq ($(LINK),)	 # default linker
-  LINK := ld
-endif
-
-ifeq ($(LINK),ld)  # MinGW linker
+ifeq ($(LINKER),ld)  # MinGW linker
   LINKOPTO := -o #
   LINKOPTS := -e main --strip-all
   LINKOPTS += C:/Windows/System32/kernel32.dll
@@ -27,13 +33,13 @@ ifeq ($(LINK),ld)  # MinGW linker
   LINKOPTS += C:/Windows/System32/shell32.dll
 endif
 
-ifeq ($(LINK),link.exe)  # MSVC linker
+ifeq ($(LINKER),link.exe)  # MSVC linker
   export LIB:=$(VSKIT);$(LIB)
   LINKOPTO := /OUT:
   LINKOPTS := /ENTRY:main /SUBSYSTEM:console kernel32.lib user32.lib shell32.lib
 endif
 
-ifeq ($(LINK),lld-link.exe)  # LLVM linker
+ifeq ($(LINKER),lld-link.exe)  # LLVM linker
   export LIB:=$(VSKIT);$(LIB)
   LINKOPTO := /out:
   LINKOPTS := /entry:main /subsystem:console kernel32.lib user32.lib shell32.lib
@@ -43,4 +49,4 @@ $(BIN)/%.o : $(SRC)/%.asm $(BIN)
 	$(NASM) -w+error -f win64 $< -o $@
 
 $(BIN)/%.exe : $(BIN)/%.o
-	$(LINK) $(LINKOPTS) $(LINKOPTO)$@ $<
+	$(LINKER) $(LINKOPTS) $(LINKOPTO)$@ $<

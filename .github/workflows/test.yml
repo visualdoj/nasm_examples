@@ -43,4 +43,4 @@ jobs:
         with:
             python-version: '3.13'
       - run: python -m pip install -U pytest
-      - run: make test LINK=${{ matrix.linker }}
+      - run: make test NASM_LINKER=${{ matrix.linker }}
