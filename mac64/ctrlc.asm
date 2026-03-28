@@ -8,7 +8,7 @@ SIGTERM equ 15
 
 section .text
 _main:
-    sub  rsp, 8                ; align stack + local storage for __sigwait result
+    sub  rsp, 8                ; align stack + local storage for pending mask
 
     ; sigprocmask(SIG_BLOCK, &block_set, NULL) — block SIGINT and SIGTERM
     mov  rax, 0x02000030       ; syscall: sigprocmask (48)
@@ -24,13 +24,27 @@ _main:
     mov  rdx, MSG_PROMPT_LEN
     syscall
 
-    ; __sigwait(&block_set, &sig) — wait for a blocked signal
-    mov  rax, 0x020001AD       ; syscall: sigwait (429)
-    lea  rdi, [block_set]
-    lea  rsi, [rsp]            ; &sig (receives signal number)
+.wait_signal:
+    ; sigpending(&pending_set) — check for blocked pending signals
+    mov  rax, 0x02000034       ; syscall: sigpending (52)
+    lea  rdi, [rsp]
     syscall
-    mov  r12d, [rsp]           ; save received signal number
 
+    mov  eax, [rsp]
+    test eax, (1 << (SIGINT-1))
+    jnz  .got_sigint
+    test eax, (1 << (SIGTERM-1))
+    jnz  .got_sigterm
+    jmp  .wait_signal
+
+.got_sigint:
+    mov  r12d, SIGINT
+    jmp  .have_signal
+
+.got_sigterm:
+    mov  r12d, SIGTERM
+
+.have_signal:
     ; Choose message: SIGINT → "Received Ctrl+C", else → "Received kill signal"
     lea  rsi, [MSG_KILL]
     mov  rdx, MSG_KILL_LEN
