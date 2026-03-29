@@ -29,13 +29,13 @@ main:
     mov  rcx, rax
     lea  rdx, [argc]
     call CommandLineToArgvW
-    mov  [argW], rax
+    mov  QWORD [argW], rax
 
     cmp  QWORD [argc], 2
     jne  .exit_error
 
     ; Parse argv[1] (UTF-16) to double -> xmm0
-    mov  rdi, [rax + 8]
+    mov  rdi, QWORD [rax + 8]
     call .atof
 
     ; If negative, negate and remember for the trailing "i"
@@ -55,9 +55,9 @@ main:
     call .dtoa                 ; rax = length
 
     ; Append "i" for imaginary results
+    lea  r12, [buf]
     test r15d, r15d
     jz   .no_i
-    lea  r12, [buf]
     mov  byte [r12 + rax], 'i'
     inc  rax
 .no_i:

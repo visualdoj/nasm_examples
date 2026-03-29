@@ -31,9 +31,9 @@ main:
     call .dtoa                 ; rax = length
 
     ; Append "i" for imaginary results
+    lea  r12, [buf]
     test r15d, r15d
     jz   .no_i
-    lea  r12, [buf]
     mov  byte [r12 + rax], 'i'
     inc  rax
 .no_i:
