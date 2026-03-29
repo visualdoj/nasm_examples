@@ -33,10 +33,11 @@ main:
     ; Append "i" for imaginary results
     test r15d, r15d
     jz   .no_i
-    mov  byte [buf + rax], 'i'
+    lea  r12, [buf]
+    mov  byte [r12 + rax], 'i'
     inc  rax
 .no_i:
-    mov  byte [buf + rax], 10  ; newline
+    mov  byte [r12 + rax], 10  ; newline
     inc  rax
 
     ; write(stdout, buf, len)

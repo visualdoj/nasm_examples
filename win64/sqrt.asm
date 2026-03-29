@@ -57,11 +57,12 @@ main:
     ; Append "i" for imaginary results
     test r15d, r15d
     jz   .no_i
-    mov  byte [buf + rax], 'i'
+    lea  r12, [buf]
+    mov  byte [r12 + rax], 'i'
     inc  rax
 .no_i:
-    mov  byte [buf + rax], 13  ; CR
-    mov  byte [buf + rax + 1], 10  ; LF
+    mov  byte [r12 + rax], 13  ; CR
+    mov  byte [r12 + rax + 1], 10  ; LF
     add  rax, 2
 
     ; WriteFile(stdout, buf, len, &bytes, NULL)
