@@ -458,3 +458,128 @@ def test_ctrlc_stays_alive():
     finally:
         _ctrlc_signal(proc)
         proc.wait(timeout=5)
+
+
+# ---------------------------------------------------------------------------
+# brainf — Brainfuck JIT compiler
+# ---------------------------------------------------------------------------
+
+def _brainf_run(program, stdin_data=None):
+    """Run brainf with the given BF program string."""
+    BIN = os.environ['BIN']
+    SRC = os.environ['SRC']
+    EXEEXT = os.environ['EXEEXT']
+    if 'brainf.asm' not in os.listdir(SRC):
+        import pytest
+        pytest.skip('Not implemented')
+    brainf = os.path.join(BIN, 'brainf' + EXEEXT)
+    return subprocess.run([brainf, program], capture_output=True,
+                          input=stdin_data)
+
+
+def test_brainf_empty():
+    p = _brainf_run('')
+    assert p.returncode == 0
+    assert p.stdout == b''
+
+
+def test_brainf_single_dot():
+    """Output the zero-initialised cell."""
+    p = _brainf_run('.')
+    assert p.returncode == 0
+    assert p.stdout == b'\x00'
+
+
+def test_brainf_increment():
+    p = _brainf_run('+++++.')
+    assert p.returncode == 0
+    assert p.stdout == b'\x05'
+
+
+def test_brainf_decrement():
+    p = _brainf_run('+++++--.')
+    assert p.returncode == 0
+    assert p.stdout == b'\x03'
+
+
+def test_brainf_cell_wrap():
+    """Decrementing a zero cell wraps to 255."""
+    p = _brainf_run('-.')
+    assert p.returncode == 0
+    assert p.stdout == b'\xff'
+
+
+def test_brainf_navigate():
+    """Move right then left returns to original cell."""
+    p = _brainf_run('+++>++<.')
+    assert p.returncode == 0
+    assert p.stdout == b'\x03'
+
+
+def test_brainf_multiple_outputs():
+    p = _brainf_run('+++.>++.')
+    assert p.returncode == 0
+    assert p.stdout == b'\x03\x02'
+
+
+def test_brainf_simple_loop():
+    """Multiplication via loop: 8*8+1 = 65 = 'A'."""
+    p = _brainf_run('++++++++[>++++++++<-]>+.')
+    assert p.returncode == 0
+    assert p.stdout == b'A'
+
+
+def test_brainf_skip_loop():
+    """Loop body is skipped when current cell is zero."""
+    p = _brainf_run('[+++.]')
+    assert p.returncode == 0
+    assert p.stdout == b''
+
+
+def test_brainf_nested_loops():
+    """3 * 4 = 12."""
+    p = _brainf_run('+++[>++++<-]>.')
+    assert p.returncode == 0
+    assert p.stdout == b'\x0c'
+
+
+def test_brainf_deep_nesting():
+    """Deeply nested loops, all skipped."""
+    p = _brainf_run('[[[]]]')
+    assert p.returncode == 0
+    assert p.stdout == b''
+
+
+def test_brainf_hello_world():
+    bf = ('++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]'
+          '>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.')
+    p = _brainf_run(bf)
+    assert p.returncode == 0
+    assert p.stdout == b'Hello World!\n'
+
+
+def test_brainf_input():
+    """Read one byte from stdin and echo it."""
+    p = _brainf_run(',.', stdin_data=b'X')
+    assert p.returncode == 0
+    assert p.stdout == b'X'
+
+
+def test_brainf_ignore_non_bf():
+    """Non-BF characters are silently ignored."""
+    p = _brainf_run('hello +++++world.')
+    assert p.returncode == 0
+    assert p.stdout == b'\x05'
+
+
+def test_brainf_usage():
+    """Running without arguments exits with code 1."""
+    BIN = os.environ['BIN']
+    SRC = os.environ['SRC']
+    EXEEXT = os.environ['EXEEXT']
+    if 'brainf.asm' not in os.listdir(SRC):
+        import pytest
+        pytest.skip('Not implemented')
+    brainf = os.path.join(BIN, 'brainf' + EXEEXT)
+    p = subprocess.run([brainf], capture_output=True)
+    assert p.returncode == 1

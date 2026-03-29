@@ -17,3 +17,4 @@
 |clear    |Clears the terminal screen                                          |[unix64](unix64/clear.asm)   [win64](win64/clear.asm)   [mac64](mac64/clear.asm)  |
 |sqrt     |Prints the square root of a floating-point argument                 |[unix64](unix64/sqrt.asm)    [win64](win64/sqrt.asm)    [mac64](mac64/sqrt.asm)   |
 |ctrlc    |Waits for Ctrl+C, acknowledges it, and exits via standard signal    |[unix64](unix64/ctrlc.asm)   [win64](win64/ctrlc.asm)   [mac64](mac64/ctrlc.asm)  |
+|brainf   |Brainfuck JIT compiler — compiles and runs BF as native x86-64 code |[unix64](unix64/brainf.asm)  [win64](win64/brainf.asm)  [mac64](mac64/brainf.asm) |
