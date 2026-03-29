@@ -250,6 +250,35 @@ def test_sleep_1():
     assert 0.9 <= elapsed <= 3.0, f"sleep 1 took {elapsed:.2f}s, expected ~1s"
 
 
+def test_rawkey():
+    BIN = os.environ['BIN']
+    SRC = os.environ['SRC']
+    EXEEXT = os.environ['EXEEXT']
+    if 'rawkey.asm' not in os.listdir(SRC):
+        import pytest
+        pytest.skip('Not implemented')
+        return
+
+    rawkey_exe = os.path.join(BIN, 'rawkey' + EXEEXT)
+
+    def run_rawkey(input_bytes):
+        p = subprocess.run(f"{rawkey_exe}", shell=True, capture_output=True,
+                           input=input_bytes)
+        assert p.returncode == 0
+        assert p.stderr.decode("utf-8") == ''
+        return p.stdout.decode("utf-8").splitlines()
+
+    # Printable characters followed by ESC
+    assert run_rawkey(bytes([97, 66, 0, 255, 27])) == \
+        ["97", "66", "0", "255", "27"]
+
+    # Just ESC
+    assert run_rawkey(bytes([27])) == ["27"]
+
+    # EOF without ESC
+    assert run_rawkey(bytes([65, 10])) == ["65", "10"]
+
+
 def test_hexdump():
     BIN = os.environ['BIN']
     SRC = os.environ['SRC']

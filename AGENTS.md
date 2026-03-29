@@ -82,6 +82,16 @@ CI runs the full matrix (Windows, Ubuntu, macOS) on every push and pull request 
   mov  cl,  foo     ; 2-char register — 2 spaces after comma
   ```
 
+- **Never use `[symbol + register]` memory operands.** In x86-64, `default rel` makes plain `[symbol]` references RIP-relative, but adding a register (e.g. `[buf + rcx]`) forces NASM to emit a 32-bit absolute address — there is no `[RIP + disp + reg]` encoding. This generates relocations (`IMAGE_REL_AMD64_ADDR32`, `R_X86_64_32S`) that fail on modern linkers (ASLR, PIE, Mach-O 64-bit). Instead, load the symbol address into a register first, then index from it:
+  ```nasm
+  ; WRONG — generates a 32-bit absolute relocation:
+  movzx eax, byte [buf + rcx]
+
+  ; RIGHT — RIP-relative lea, then register+register:
+  lea  rsi, [buf]
+  movzx eax, byte [rsi + rcx]
+  ```
+
 ## Conventions
 
 - Each `.asm` file should be self-contained and demonstrate one concept.
