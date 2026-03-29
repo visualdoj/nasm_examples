@@ -358,6 +358,21 @@ def test_clear():
     assert f"{ESC}[3J" in output, "should contain erase-scrollback sequence"
 
 
+def test_progress5():
+    BIN = os.environ['BIN']
+    SRC = os.environ['SRC']
+    EXEEXT = os.environ['EXEEXT']
+    if 'progress5.asm' not in os.listdir(SRC):
+        import pytest
+        pytest.skip('Not implemented')
+        return
+
+    progress5_exe = os.path.join(BIN, 'progress5' + EXEEXT)
+    p = subprocess.run(progress5_exe, shell=True, capture_output=True)
+    assert p.stdout.decode("utf-8") == ''
+    assert p.stderr.decode("utf-8") == '\r[##################################################] 100%\n'
+
+
 def test_sqrt():
     BIN = os.environ['BIN']
     SRC = os.environ['SRC']
