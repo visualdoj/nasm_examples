@@ -93,7 +93,8 @@ main:
 .no_gap:
     cmp  ecx, r14d
     jge  .pad
-    movzx eax, byte [rbuf + rcx]
+    lea  rsi, [rbuf]
+    movzx eax, byte [rsi + rcx]
     mov  edx, eax
     shr  edx, 4
     mov  dl, [rbx + rdx]
@@ -122,7 +123,8 @@ main:
 .asc_loop:
     cmp  ecx, r14d
     je   .asc_end
-    movzx eax, byte [rbuf + rcx]
+    lea  rsi, [rbuf]
+    movzx eax, byte [rsi + rcx]
     cmp  al, 0x20
     jb   .dot
     cmp  al, 0x7e
@@ -205,10 +207,10 @@ main:
     ret
 
 section .data
-HEX: db "0123456789abcdef"
+HEX db "0123456789abcdef"
 
 section .bss
-argW: resq 1
-argc: resq 1
-rbuf: resb 16
-lbuf: resb 80
+argW    resq 1
+argc    resq 1
+rbuf    resb 16
+lbuf    resb 80

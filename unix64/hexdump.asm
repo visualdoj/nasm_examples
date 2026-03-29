@@ -50,7 +50,8 @@ main:
 .no_gap:
     cmp  ecx, r14d
     jge  .pad
-    movzx eax, byte [rbuf + rcx]
+    lea  rsi, [rbuf]
+    movzx eax, byte [rsi + rcx]
     mov  edx, eax
     shr  edx, 4
     mov  dl, [rbx + rdx]
@@ -79,7 +80,8 @@ main:
 .asc_loop:
     cmp  ecx, r14d
     je   .asc_end
-    movzx eax, byte [rbuf + rcx]
+    lea  rsi, [rbuf]
+    movzx eax, byte [rsi + rcx]
     cmp  al, 0x20
     jb   .dot
     cmp  al, 0x7e
