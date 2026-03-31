@@ -598,3 +598,83 @@ def test_brainf_usage():
     brainf = os.path.join(BIN, 'brainf' + EXEEXT)
     p = subprocess.run([brainf], capture_output=True)
     assert p.returncode == 1
+
+
+# ---------------------------------------------------------------------------
+# multibars — simultaneous progress bars
+# ---------------------------------------------------------------------------
+
+def _multibars_skip_or_exe():
+    BIN = os.environ['BIN']
+    SRC = os.environ['SRC']
+    EXEEXT = os.environ['EXEEXT']
+    if 'multibars.asm' not in os.listdir(SRC):
+        import pytest
+        pytest.skip('Not implemented')
+    return os.path.join(BIN, 'multibars' + EXEEXT)
+
+
+def _multibars_run(exe, *args):
+    return subprocess.run([exe] + [str(a) for a in args], capture_output=True)
+
+
+def test_multibars_no_args():
+    """No arguments must exit with code 1."""
+    exe = _multibars_skip_or_exe()
+    p = _multibars_run(exe)
+    assert p.returncode == 1
+
+
+def test_multibars_too_many_args():
+    """More than 16 arguments must exit with code 1."""
+    exe = _multibars_skip_or_exe()
+    p = _multibars_run(exe, *([0] * 17))
+    assert p.returncode == 1
+
+
+def test_multibars_messages():
+    """0-second bars complete instantly; stdout messages arrive in argument order.
+
+    capture_output=True pipes stderr, so GetConsoleMode returns 0 and bar
+    rendering is suppressed entirely — only stdout messages are checked.
+    """
+    exe = _multibars_skip_or_exe()
+
+    # Single bar
+    p = _multibars_run(exe, 0)
+    assert p.returncode == 0
+    assert p.stderr == b''
+    assert p.stdout.decode('utf-8').splitlines() == [
+        'Progress bar for 0 seconds is completed',
+    ]
+
+    # Two bars — both complete in the first poll, messages in argument order
+    p = _multibars_run(exe, 0, 0)
+    assert p.returncode == 0
+    assert p.stderr == b''
+    assert p.stdout.decode('utf-8').splitlines() == [
+        'Progress bar for 0 seconds is completed',
+        'Progress bar for 0 seconds is completed',
+    ]
+
+    # Maximum supported bars (16)
+    p = _multibars_run(exe, *([0] * 16))
+    assert p.returncode == 0
+    assert p.stderr == b''
+    assert p.stdout.decode('utf-8').splitlines() == [
+        'Progress bar for 0 seconds is completed',
+    ] * 16
+
+
+def test_multibars_timing():
+    """A 1-second bar prints the right message and finishes in roughly 1 second."""
+    exe = _multibars_skip_or_exe()
+    before = time.monotonic()
+    p = _multibars_run(exe, 1)
+    elapsed = time.monotonic() - before
+    assert p.returncode == 0
+    assert p.stderr == b''
+    assert p.stdout.decode('utf-8').splitlines() == [
+        'Progress bar for 1 seconds is completed',
+    ]
+    assert 0.5 <= elapsed <= 5.0, f"1s bar took {elapsed:.2f}s"
