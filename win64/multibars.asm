@@ -142,7 +142,8 @@ main:
     ; r13d = duration in seconds
     mov   eax, ebx
     imul  eax, BAR_SIZE
-    lea   r14, [bars + rax]
+    lea   r14, [bars]
+    add   r14, rax
 
     ; bar.durationTicks = freq * seconds
     mov   rax, [freq]
@@ -228,7 +229,8 @@ main:
 
     mov  eax, ebx
     imul eax, BAR_SIZE
-    lea  r14, [bars + rax]
+    lea  r14, [bars]
+    add  r14, rax
 
     cmp  dword [r14 + bDone], 0
     jne  .scan_next
@@ -288,7 +290,8 @@ main:
 
     mov  eax, ebx
     imul eax, BAR_SIZE
-    lea  r14, [bars + rax]
+    lea  r14, [bars]
+    add  r14, rax
 
     cmp  dword [r14 + bDone], 0
     jne  .rbar_full
@@ -311,8 +314,22 @@ main:
     jmp  .rbar_draw
 
 .rbar_full:
-    mov  r10d, 100
-    mov  r11d, BAR_WIDTH
+    ; Completed bar: output blank line (will be overwritten by message)
+    mov  ecx, 1 + BAR_WIDTH   ; 51 spaces for '[####...]' part
+    mov  al, ' '
+    rep  stosb
+    ; Fill the remaining 8 bytes ('] xxx%\r\n' -> spaces + CRLF)
+    mov  byte [rdi], ' '
+    mov  byte [rdi+1], ' '
+    mov  byte [rdi+2], ' '
+    mov  byte [rdi+3], ' '
+    mov  byte [rdi+4], ' '
+    mov  byte [rdi+5], ' '
+    mov  byte [rdi+6], 13     ; CR
+    mov  byte [rdi+7], 10     ; LF
+    add  rdi, 8
+    inc  ebx
+    jmp  .rbar
 
 .rbar_draw:
     ; Format: [####-----] xxx%\r\n
@@ -394,7 +411,8 @@ main:
 
     mov  eax, ebx
     imul eax, BAR_SIZE
-    lea  r14, [bars + rax]
+    lea  r14, [bars]
+    add  r14, rax
 
     cmp  dword [r14 + bDone], 1
     jne  .cmsg_next
@@ -408,8 +426,7 @@ main:
 
     mov  rcx, [stderr]
     mov  edx, [base_row]
-    add  edx, r12d
-    add  edx, [msg_count]
+    add  edx, ebx             ; position at bar's own row
     shl  edx, 16
     call SetConsoleCursorPosition
 
@@ -460,20 +477,6 @@ main:
 
     inc  dword [done_count]
 
-    ; Re-query cursor: the message CRLF may have scrolled the buffer.
-    ; Recompute base_row while msg_count still reflects rows already printed.
-    cmp  qword [stderr_is_tty], 0
-    je   .skip_adj
-    mov  rcx, [stderr]
-    lea  rdx, [csbi]
-    call GetConsoleScreenBufferInfo
-    movzx eax, word [csbi + 6]   ; cursor Y after message
-    sub  eax, r12d
-    sub  eax, [msg_count]         ; msg_count not yet incremented
-    mov  [base_row], eax
-.skip_adj:
-    inc  dword [msg_count]
-
 .cmsg_next:
     inc  ebx
     jmp  .cmsg
@@ -489,8 +492,7 @@ main:
 
     mov  rcx, [stderr]
     mov  edx, [base_row]
-    add  edx, r12d
-    add  edx, [msg_count]
+    add  edx, r12d            ; cursor after all bar/message rows
     shl  edx, 16
     call SetConsoleCursorPosition
 

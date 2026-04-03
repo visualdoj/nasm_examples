@@ -154,7 +154,8 @@ main:
     ; Compute bar struct pointer: r14 = &bars[ebx]
     mov  eax, ebx
     imul eax, BAR_SIZE
-    lea  r14, [bars + rax]
+    lea  r14, [bars]
+    add  r14, rax
 
     ; bar.durationNs = ebp * 1000000000
     mov  rax, 1000000000
@@ -238,7 +239,8 @@ main:
 
     mov  eax, ebx
     imul eax, BAR_SIZE
-    lea  r14, [bars + rax]
+    lea  r14, [bars]
+    add  r14, rax
 
     cmp  dword [r14 + bDone], 0
     jne  .scan_next
@@ -292,7 +294,8 @@ main:
 
     mov  eax, ebx
     imul eax, BAR_SIZE
-    lea  r14, [bars + rax]
+    lea  r14, [bars]
+    add  r14, rax
 
     cmp  dword [r14 + bDone], 0
     jne  .rbar_full
@@ -315,8 +318,21 @@ main:
     jmp  .rbar_draw
 
 .rbar_full:
-    mov  r10d, 100
-    mov  r11d, BAR_WIDTH
+    ; Completed bar: output blank line (will be overwritten by message)
+    mov  ecx, 1 + BAR_WIDTH   ; 51 spaces for '[####...]' part
+    mov  al, ' '
+    rep  stosb
+    ; Fill the remaining 7 bytes ('] xxx%\n' -> spaces + LF)
+    mov  byte [rdi], ' '
+    mov  byte [rdi+1], ' '
+    mov  byte [rdi+2], ' '
+    mov  byte [rdi+3], ' '
+    mov  byte [rdi+4], ' '
+    mov  byte [rdi+5], ' '
+    mov  byte [rdi+6], 10     ; LF
+    add  rdi, 7
+    inc  ebx
+    jmp  .rbar
 
 .rbar_draw:
     ; Format: [####-----] xxx%\n
@@ -398,21 +414,25 @@ main:
 
     mov  eax, ebx
     imul eax, BAR_SIZE
-    lea  r14, [bars + rax]
+    lea  r14, [bars]
+    add  r14, rax
 
     cmp  dword [r14 + bDone], 1
     jne  .cmsg_next
 
     mov  dword [r14 + bDone], 2
 
-    ; TTY: move cursor down past bars + previous messages, then back up after
+    ; TTY: move cursor down to bar's row, then back up after
     cmp  qword [stderr_is_tty], 0
     je   .cmsg_build
 
-    ; Emit ESC[<num_bars+msg_count>B on stderr
+    ; Skip cursor down if bar index is 0 (already at first row)
+    test ebx, ebx
+    jz   .cmsg_build
+
+    ; Emit ESC[<bar_index>B on stderr to position at this bar's row
     lea  rdi, [render_buf]
-    mov  eax, [num_bars]
-    add  eax, [msg_count]
+    mov  eax, ebx
     append_cud
     lea  rsi, [render_buf]
     lea  rax, [render_buf]
@@ -471,9 +491,8 @@ main:
     je   .cmsg_skip_up
 
     lea  rdi, [render_buf]
-    mov  eax, [num_bars]
-    add  eax, [msg_count]
-    inc  eax
+    mov  eax, ebx
+    inc  eax               ; +1 for the message's own newline
     append_cuu
     lea  rsi, [render_buf]
     lea  rax, [render_buf]
@@ -484,7 +503,6 @@ main:
     syscall
 
 .cmsg_skip_up:
-    inc  dword [msg_count]
 
 .cmsg_next:
     inc  ebx
@@ -501,7 +519,6 @@ main:
 
     lea  rdi, [render_buf]
     mov  eax, [num_bars]
-    add  eax, [msg_count]
     append_cud
     lea  rsi, [render_buf]
     lea  rax, [render_buf]
